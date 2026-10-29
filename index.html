@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can you save Kamla? A Pukaar simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Noto+Sans+Devanagari:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #EEF5F2;
+  --card: #FFFFFF;
+  --ink: #0E2A2B;
+  --muted: #4D6563;
+  --line: #CBDDD8;
+  --teal: #0F7173;
+  --teal-soft: #DCEFEC;
+  --gold: #A86F08;
+  --gold-soft: #FAEFD6;
+  --rasp: #B3284F;
+  --rasp-soft: #F8E2E8;
+  --leaf: #4F7A1E;
+  --leaf-soft: #EAF3DC;
+  --plum: #6B4FA0;
+  --plum-soft: #EEE8F6;
+  --band: #0E2A2B;
+  --band-ink: #F2F8F6;
+  --land: #E3EBDF;
+  --road: #FFFFFF;
+  --water: #2E8C9A;
+  --house: #F7F3EA;
+  --roof: #8C5A3C;
+  --on-accent: #FFFFFF;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #081716; --card: #102423; --ink: #E4F1EE; --muted: #9DB8B4; --line: #23403D;
+    --teal: #4FC1BE; --teal-soft: #123735; --gold: #F0B947; --gold-soft: #33280F;
+    --rasp: #FF7B9C; --rasp-soft: #3A1823; --leaf: #9BD066; --leaf-soft: #1E3013;
+    --plum: #B9A0EA; --plum-soft: #2A2140; --band: #040D0C; --band-ink: #E4F1EE;
+    --land: #16302C; --road: #2A4A45; --water: #2B7F8C; --house: #D9D2C3; --roof: #9A6A4B;
+    --on-accent: #06120F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #081716; --card: #102423; --ink: #E4F1EE; --muted: #9DB8B4; --line: #23403D;
+  --teal: #4FC1BE; --teal-soft: #123735; --gold: #F0B947; --gold-soft: #33280F;
+  --rasp: #FF7B9C; --rasp-soft: #3A1823; --leaf: #9BD066; --leaf-soft: #1E3013;
+  --plum: #B9A0EA; --plum-soft: #2A2140; --band: #040D0C; --band-ink: #E4F1EE;
+  --land: #16302C; --road: #2A4A45; --water: #2B7F8C; --house: #D9D2C3; --roof: #9A6A4B;
+  --on-accent: #06120F;
+  color-scheme: dark;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Archivo", "Helvetica Neue", Arial, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.dev { font-family: "Noto Sans Devanagari", "Archivo", system-ui, sans-serif; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, .msg:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.top { background: var(--band); color: var(--band-ink); }
+.top-in { max-width: 1240px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; }
+.brand svg { width: 28px; height: 28px; }
+.brand .dev { font-weight: 500; opacity: 0.75; font-size: 14px; }
+.top .tag { margin-left: auto; font-size: 13px; opacity: 0.8; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 18px 20px 28px; }
+.screen { display: none; }
+.screen.on { display: block; }
+
+.cta { background: var(--teal); color: var(--on-accent); border: none; border-radius: 10px; padding: 14px 22px; font-weight: 700; font-size: 16px; }
+.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 12px 18px; font-weight: 700; }
+.small { font-size: 13px; color: var(--muted); }
+
+/* story intro */
+.scene { position: relative; border-radius: 18px; overflow: hidden; background: #071A24; min-height: 460px; }
+.scene svg { display: block; width: 100%; height: 100%; min-height: 460px; }
+.rain { position: absolute; inset: 0; pointer-events: none; opacity: 0.55;
+  background-image: repeating-linear-gradient(105deg, rgba(190, 220, 235, 0.0) 0 14px, rgba(190, 220, 235, 0.35) 14px 15px, rgba(190, 220, 235, 0.0) 15px 34px);
+  background-size: 200px 200px; animation: rain 0.6s linear infinite; }
+@keyframes rain { from { background-position: 0 0; } to { background-position: -40px 200px; } }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; animation: flash 9s linear infinite; }
+@keyframes flash { 0%, 42%, 44%, 46%, 100% { opacity: 0; } 43% { opacity: 0.25; } 45% { opacity: 0.12; } }
+.flood-rise { animation: rise 10s ease-in-out forwards; }
+@keyframes rise { from { transform: translateY(70px); } to { transform: translateY(0); } }
+.wave { animation: wave 3s ease-in-out infinite alternate; }
+@keyframes wave { from { transform: translateX(-30px); } to { transform: translateX(0); } }
+.glow { animation: glow 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes glow { 0%, 100% { opacity: 0.35; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.15); } }
+.beat { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 30px 30px; color: #F2F8F6;
+  background: linear-gradient(transparent, rgba(4, 13, 12, 0.85) 35%); }
+.beat p { font-size: clamp(19px, 2.6vw, 28px); font-weight: 700; margin: 0; max-width: 30em; line-height: 1.3; min-height: 2.6em; transition: opacity 0.4s; }
+.beat .row { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+.beat .skip { background: transparent; border: 1px solid rgba(242, 248, 246, 0.4); color: #F2F8F6; border-radius: 10px; padding: 10px 16px; font-weight: 700; }
+.beat .dots { display: flex; gap: 6px; margin-left: auto; }
+.beat .dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(242, 248, 246, 0.3); display: block; }
+.beat .dots i.on { background: #E0A21C; }
+.title-card { display: none; }
+.title-card.on { display: block; }
+.title-card h1 { font-size: clamp(38px, 6vw, 70px); font-weight: 800; font-stretch: 118%; line-height: 1; margin: 0 0 8px; color: #F2F8F6; }
+
+/* modal */
+.modal { position: fixed; inset: 0; background: rgba(4, 13, 12, 0.6); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+.modal.on { display: flex; }
+.sheet { background: var(--card); color: var(--ink); border-radius: 18px; max-width: 620px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); animation: pop 0.25s ease-out; }
+@keyframes pop { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+.sheet .eyebrow { font-size: 13px; font-weight: 800; color: var(--gold); }
+.sheet h2 { margin: 4px 0 10px; font-size: 26px; font-stretch: 110%; line-height: 1.15; }
+.sheet .goal { background: var(--teal-soft); border-radius: 12px; padding: 12px 14px; margin: 10px 0 14px; font-size: 16px; }
+.sheet .goal b { color: var(--teal); }
+.steps { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 10px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; counter-increment: s; font-size: 15px; }
+.steps li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; background: var(--teal); color: var(--on-accent); font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.warn { background: var(--rasp-soft); border-radius: 12px; padding: 10px 14px; font-size: 14.5px; margin-bottom: 16px; }
+.sheet .stats { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 16px; }
+.sheet .stats div { padding: 10px 12px; border-radius: 10px; font-size: 15px; }
+
+/* game layout */
+.hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.hud .round { font-size: 13px; color: var(--muted); width: 100%; }
+.hud h2 { margin: 0; font-size: 21px; font-stretch: 108%; font-weight: 800; }
+.pill { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.pill.warnp { background: var(--rasp-soft); border-color: transparent; color: var(--rasp); }
+.pill.clock { margin-left: auto; font-weight: 800; }
+.help { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 700; color: var(--teal); }
+.game { display: grid; grid-template-columns: 1.5fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "map feed" "panel feed"; gap: 14px; align-items: start; }
+.mapbox { grid-area: map; position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.mapbox svg { display: block; width: 100%; height: auto; }
+.mapbox .rain { opacity: 0.18; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; padding: 7px 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.feedcol { grid-area: feed; }
+.panelcol { grid-area: panel; }
+.col h3 { margin: 0 0 8px; font-size: 15px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.col h3 span { font-weight: 500; font-size: 12.5px; color: var(--muted); }
+.feed { height: min(70vh, 640px); overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 2px 4px 2px 2px; }
+.msg { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; text-align: left; color: var(--ink); width: 100%; animation: drop 0.3s ease-out; }
+@keyframes drop { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.msg .meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.msg .meta b { color: var(--gold); }
+.msg .txt { font-size: 15px; }
+.msg.sel { border-color: var(--teal); box-shadow: 0 0 0 2px var(--teal); }
+.msg.sent { opacity: 0.55; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.chip { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; animation: drop 0.3s ease-out; }
+.c-teal { background: var(--teal-soft); color: var(--teal); }
+.c-rasp { background: var(--rasp-soft); color: var(--rasp); }
+.c-gold { background: var(--gold-soft); color: var(--gold); }
+.c-leaf { background: var(--leaf-soft); color: var(--leaf); }
+.c-plum { background: var(--plum-soft); color: var(--plum); }
+.c-grey { background: var(--paper); color: var(--muted); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.hint { font-size: 14px; color: var(--muted); margin: 0; }
+.detail { border: 1px dashed var(--line); border-radius: 10px; padding: 12px; }
+.detail .txt { font-size: 15.5px; margin: 4px 0 10px; }
+.send { background: var(--gold); color: var(--on-accent); border: none; border-radius: 8px; padding: 10px 16px; font-weight: 700; }
+.send:disabled { opacity: 0.4; cursor: default; }
+.log { display: flex; flex-direction: column; gap: 6px; }
+.log div { font-size: 14px; padding: 8px 10px; border-radius: 8px; animation: drop 0.3s ease-out; }
+.log .good { background: var(--leaf-soft); }
+.log .bad { background: var(--rasp-soft); }
+.log .meh { background: var(--gold-soft); }
+.approve { border: 2px solid var(--rasp); border-radius: 12px; padding: 12px; animation: pop 0.25s ease-out; }
+.approve .lbl { font-size: 12.5px; font-weight: 800; color: var(--rasp); }
+.approve h4 { margin: 4px 0 6px; font-size: 17px; }
+.approve .why { font-size: 13.5px; color: var(--muted); margin: 6px 0 10px; }
+.ok { background: var(--leaf); color: var(--on-accent); border: none; border-radius: 8px; padding: 10px 20px; font-weight: 800; }
+.pulse { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(79, 122, 30, 0.55); } 50% { box-shadow: 0 0 0 9px rgba(79, 122, 30, 0); } }
+.board { display: flex; flex-direction: column; gap: 6px; }
+.tk { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: start; padding: 8px 10px; border-radius: 10px; background: var(--paper); font-size: 13.5px; }
+.tk b { display: block; font-size: 14px; }
+.tk .st { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.badge { font-size: 11.5px; font-weight: 800; padding: 2px 7px; border-radius: 6px; color: var(--on-accent); }
+.b-p1 { background: var(--rasp); } .b-p2 { background: var(--gold); } .b-p3 { background: var(--teal); }
+.b-v { background: var(--muted); } .b-ok { background: var(--leaf); } .b-i { background: var(--plum); }
+.saathi { border: 2px solid var(--plum); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 7px; animation: pop 0.25s ease-out; }
+.saathi .lbl { font-size: 12.5px; font-weight: 800; color: var(--plum); }
+.bub { max-width: 92%; padding: 8px 10px; border-radius: 10px; font-size: 14px; animation: drop 0.3s ease-out; }
+.bub.in { background: var(--plum-soft); align-self: flex-start; }
+.bub.out { background: var(--leaf-soft); align-self: flex-end; }
+.sys { font-size: 12.5px; align-self: center; background: var(--gold-soft); padding: 4px 10px; border-radius: 8px; text-align: center; animation: drop 0.3s ease-out; }
+
+/* the bar under the map explains each agent the first time it acts */
+.explain { background: var(--band); color: var(--band-ink); padding: 10px 14px; font-size: 14.5px; border-left: 6px solid #E0A21C; animation: drop 0.3s ease-out; min-height: 64px; }
+.explain b { display: block; color: #E0A21C; font-size: 13px; }
+.toasts { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; z-index: 40; max-width: min(380px, calc(100vw - 32px)); }
+.toast { background: var(--band); color: var(--band-ink); border-radius: 12px; padding: 10px 14px; font-size: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); animation: pop 0.25s ease-out; border-left: 5px solid var(--gold); }
+.toast b { display: block; color: #E0A21C; font-size: 13px; }
+
+/* map pieces */
+.ripple { transform-box: fill-box; transform-origin: center; animation: ripple 1.6s ease-out forwards; }
+@keyframes ripple { from { transform: scale(0.3); opacity: 0.9; } to { transform: scale(2.8); opacity: 0; } }
+.pinpulse { transform-box: fill-box; transform-origin: center; animation: glow 1.2s ease-in-out infinite; }
+.waterwave { animation: wave 2.6s ease-in-out infinite alternate; }
+
+/* results */
+.res-h { font-size: clamp(30px, 5vw, 52px); font-weight: 800; font-stretch: 115%; line-height: 1.05; margin: 10px 0 6px; }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.side { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; animation: pop 0.4s ease-out; }
+.side h3 { margin: 0 0 12px; font-size: 18px; }
+.side.today { border-top: 6px solid var(--rasp); }
+.side.pukaar { border-top: 6px solid var(--leaf); }
+.big { display: flex; gap: 14px; margin-bottom: 8px; }
+.big div { flex: 1; background: var(--paper); border-radius: 12px; padding: 10px 12px; }
+.big b { display: block; font-size: 34px; font-weight: 800; font-stretch: 112%; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.big span { font-size: 13px; color: var(--muted); }
+.row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.row:last-child { border-bottom: none; }
+.row span:first-child { color: var(--muted); }
+.row span:last-child { font-weight: 800; text-align: right; }
+.agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 8px 0 20px; }
+.agents div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.agents b { display: block; color: var(--teal); }
+.note { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+@media (max-width: 860px) {
+  .game { grid-template-columns: 1fr; grid-template-areas: "map" "feed" "panel"; }
+  .feed { height: 36vh; }
+  .compare { grid-template-columns: 1fr; }
+  .agents { grid-template-columns: 1fr 1fr; }
+  .pill.clock { margin-left: 0; }
+  .scene, .scene svg { min-height: 380px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .flood-rise { transform: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#E0A21C"/><path d="M13 15a9 9 0 0 1 14 0" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M16.5 18.5a4.5 4.5 0 0 1 7 0" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="20" cy="22" r="1.9" fill="#fff"/><path d="M8 28c3-2.4 5-2.4 8 0s5 2.4 8 0 5-2.4 8 0" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      Pukaar <span class="dev">पुकार</span>
+    </div>
+    <span class="tag">AgentX Hackathon 2026, PS-03 idea round</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- animated story intro -->
+  <section class="screen on" id="intro" aria-label="Story">
+    <div class="scene">
+      <svg viewBox="0 0 1000 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#071A24"/><stop offset="1" stop-color="#123544"/></linearGradient>
+          <linearGradient id="flood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E8C9A" stop-opacity="0.95"/><stop offset="1" stop-color="#0C3E4A"/></linearGradient>
+          <radialGradient id="lamp" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFD27A" stop-opacity="0.9"/><stop offset="1" stop-color="#FFD27A" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="1000" height="460" fill="url(#sky)"/>
+        <g fill="#0B2531">
+          <rect x="0" y="210" width="90" height="190"/><rect x="95" y="170" width="70" height="230"/><rect x="170" y="240" width="110" height="160"/>
+          <rect x="640" y="190" width="80" height="210"/><rect x="725" y="150" width="60" height="250"/><rect x="790" y="230" width="120" height="170"/><rect x="915" y="200" width="85" height="200"/>
+        </g>
+        <g fill="#FFD27A" opacity="0.5">
+          <rect x="110" y="190" width="8" height="10"/><rect x="130" y="230" width="8" height="10"/><rect x="740" y="180" width="8" height="10"/><rect x="805" y="260" width="8" height="10"/><rect x="935" y="220" width="8" height="10"/>
+        </g>
+        <!-- Kamla's house -->
+        <g transform="translate(380 105)">
+          <polygon points="0,70 120,0 240,70" fill="#5E3B28"/>
+          <rect x="20" y="70" width="200" height="140" fill="#D9D2C3"/>
+          <rect x="45" y="100" width="56" height="48" fill="#FFD27A"/>
+          <circle cx="73" cy="124" r="60" fill="url(#lamp)" class="glow"/>
+          <rect x="140" y="110" width="44" height="100" fill="#6B4A36"/>
+          <g transform="translate(58 112)"><circle cx="8" cy="7" r="7" fill="#2A1B12"/><rect x="2" y="15" width="13" height="18" rx="5" fill="#2A1B12"/><circle cx="26" cy="12" r="5" fill="#2A1B12"/><rect x="21" y="18" width="10" height="15" rx="4" fill="#2A1B12"/></g>
+          <g transform="translate(108 96)">
+            <circle cx="0" cy="0" r="6" fill="#E0A21C" class="glow"/>
+            <path d="M-12 -12a17 17 0 0 1 24 0" stroke="#E0A21C" stroke-width="3" fill="none" stroke-linecap="round" class="glow"/>
+          </g>
+        </g>
+        <!-- signal lines travelling to the control room -->
+        <g stroke="#E0A21C" stroke-width="2" stroke-dasharray="4 8" fill="none" opacity="0.7">
+          <path d="M488 200 C 560 150, 640 120, 740 95"><animate attributeName="stroke-dashoffset" from="60" to="0" dur="1.2s" repeatCount="indefinite"/></path>
+          <path d="M150 240 C 300 150, 560 110, 740 95"><animate attributeName="stroke-dashoffset" from="60" to="0" dur="1.6s" repeatCount="indefinite"/></path>
+          <path d="M860 260 C 840 200, 800 140, 740 95"><animate attributeName="stroke-dashoffset" from="60" to="0" dur="1s" repeatCount="indefinite"/></path>
+        </g>
+        <g transform="translate(740 70)">
+          <rect x="-58" y="-22" width="116" height="44" rx="8" fill="#0F7173"/>
+          <text x="0" y="5" fill="#fff" font-size="13" font-weight="700" text-anchor="middle" font-family="Archivo, Arial, sans-serif">Control room</text>
+        </g>
+        <!-- rising water -->
+        <g class="flood-rise">
+          <path class="wave" d="M-60 348 Q -30 338 0 296 T 60 296 T 120 296 T 180 296 T 240 296 T 300 296 T 360 296 T 420 296 T 480 296 T 540 296 T 600 296 T 660 296 T 720 296 T 780 296 T 840 296 T 900 296 T 960 296 T 1020 296 T 1080 296 V 470 H -60 Z" fill="url(#flood)"/>
+        </g>
+      </svg>
+      <div class="rain"></div>
+      <div class="flash"></div>
+      <div class="beat">
+        <div id="beats">
+          <p id="beat-text" aria-live="polite"></p>
+          <div class="row">
+            <button class="skip" id="skip" type="button">Skip the story</button>
+            <div class="dots" id="beat-dots"><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <div class="title-card" id="title-card">
+          <h1>Can you save Kamla?</h1>
+          <p style="font-size:18px;font-weight:500;min-height:0;margin-bottom:6px">Two rounds, about 2 minutes. First the way it works today, then the same night with Pukaar.</p>
+          <div class="row">
+            <button class="cta" id="how1" type="button">How to play</button>
+            <button class="skip" id="replay" type="button">Replay the story</button>
+          </div>
+          <p class="small" style="color:#BFD6D2;margin-top:10px;font-size:13px;min-height:0">A scripted simulation of our idea. Messages and outcomes are illustrative, based on documented flood-night patterns. Best on a laptop, or turn your phone sideways.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- the game, used by both rounds -->
+  <section class="screen" id="game" aria-labelledby="g-h">
+    <div class="hud">
+      <span class="round" id="g-round"></span>
+      <h2 id="g-h"></h2>
+      <span class="pill warnp" id="g-unread" hidden>Unread <b id="g-unread-n">0</b></span>
+      <span class="pill" id="g-taps" hidden>Your taps <b id="g-taps-n">0</b></span>
+      <span class="pill">Boats free <b id="g-boats">3</b></span>
+      <button class="help" id="g-help" type="button">How to play</button>
+      <span class="pill clock" id="g-clock">9:30 PM</span>
+    </div>
+    <div class="game">
+      <div class="mapbox">
+        <svg id="map" viewBox="0 0 1000 300" role="img" aria-label="Map of Ward 12: houses, roads, the river and your boats"></svg>
+        <div class="rain"></div>
+        <div class="legend" id="legend"></div>
+        <div class="explain" id="explain" aria-live="polite" hidden></div>
+      </div>
+      <div class="col panelcol">
+        <h3 id="p-title">Your boats <span id="p-sub"></span></h3>
+        <div class="panel" id="panel"></div>
+      </div>
+      <div class="col feedcol">
+        <h3>Incoming messages <span id="f-sub">Newest on top</span></h3>
+        <div class="feed" id="feed" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- results -->
+  <section class="screen" id="res" aria-labelledby="res-h">
+    <p class="small">Same night. Same messages. Same three boats.</p>
+    <h2 class="res-h" id="res-h">Two very different endings</h2>
+    <div class="compare">
+      <div class="side today"><h3>Round 1: you, today</h3><div id="res-1"></div></div>
+      <div class="side pukaar"><h3>Round 2: you, with Pukaar</h3><div id="res-2"></div></div>
+    </div>
+    <h3>What the agents did while you made three decisions</h3>
+    <div class="agents">
+      <div><b>Listen</b>Understood Hindi, Marathi, Hinglish and English, from voice notes, posts and SMS.</div>
+      <div><b>Triage</b>Merged Kamla’s three messages into one urgent ticket and sent the dam rumour to be checked.</div>
+      <div><b>Loop</b>Told everyone reposting about the Pinto family that they were already safe.</div>
+      <div><b>Dispatch</b>Proposed the right boat for each family, routed around flooded Lane 6, and waited for your approval.</div>
+      <div><b>Saathi</b>Kept Kamla safe while she waited, with gas-leak steps in Hindi from an approved safety playbook.</div>
+      <div><b>Watch</b>Remembered road and power reports so every route stayed safe.</div>
+    </div>
+    <p class="note">This is a scripted simulation of the Pukaar concept for the AgentX idea round, so judges can feel the problem and the idea in about two minutes. Messages, families and outcomes are illustrative. The real multi-agent system, with live tools and human approval gates, will be built during the 24-hour round.</p>
+    <div class="actions">
+      <button class="cta" id="again" type="button">Play again</button>
+      <button class="ghost" id="story" type="button">Watch the story again</button>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="sheet" id="sheet"></div></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function () {
+  var START = 21 * 60 + 30;
+  var SPEED = 1.5;
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+
+  var MSGS = [
+    { ch: 'Post on X', text: 'Pinto family stuck on Lane 2, elderly parents!!! PLEASE SHARE AND HELP 🙏', fam: 'pinto' },
+    { ch: 'WhatsApp', text: 'Is school closed tomorrow?', fam: 'noise' },
+    { ch: 'Forward', text: 'BREAKING: dam upstream has burst, evacuate everything NOW!!', fam: 'rumour' },
+    { ch: 'Voice note, Hindi', text: 'पानी घुटनों तक आ गया है, पोते को बुखार है… गली चार, हनुमान मंदिर के पीछे', en: 'Water is at my knees, my grandson has a fever… Lane 4, behind the Hanuman temple', fam: 'kamla', dev: true, adds: ['Water at knee height, rising', 'Child with fever'] },
+    { ch: 'SMS', text: 'Joseph family on roof, Lane 9, 5 people, water still rising', fam: 'joseph', adds: ['5 people on a roof', 'Water rising'] },
+    { ch: 'WhatsApp', text: 'Pinto aunty Lane 2 still not reachable, please send a boat', fam: 'pinto' },
+    { ch: 'WhatsApp', text: 'Camp 3 needs milk for 20 kids', fam: 'camp' },
+    { ch: 'Post on X', text: 'Lane 6 completely flooded, don’t take that road', fam: 'info' },
+    { ch: 'Post on X, from her daughter', text: 'Please help my mother Kamla Devi, Lane 4 behind Hanuman temple, Shanti Nagar. Water rising!!', fam: 'kamla', adds: ['Elder, 68'] },
+    { ch: 'SMS', text: 'Praying for everyone 🙏', fam: 'noise' },
+    { ch: 'Forward', text: 'Dam burst confirmed, share fast', fam: 'rumour' },
+    { ch: 'WhatsApp, Marathi', text: 'आमच्या घरात पाणी शिरतंय, आम्ही पहिल्या मजल्यावर आहोत. शेख कुटुंब, गल्ली ७', en: 'Water is coming into our house, we are on the first floor. Shaikh family, Gali 7', fam: 'shaikh', dev: true, adds: ['Water entering, first floor'] },
+    { ch: 'Post on X', text: 'URGENT: old couple trapped on Lane 2 (Pinto). RT!!', fam: 'pinto' },
+    { ch: 'SMS', text: 'Mohan uncle not picking up his phone, Sector 3', fam: 'check' },
+    { ch: 'WhatsApp', text: 'What is the helpline number?', fam: 'noise' },
+    { ch: 'SMS, from a neighbour', text: 'shantinagar gali 4 mandir ke peeche budhi amma aur bachcha phase hai', en: 'Shanti Nagar Lane 4, behind the temple, an old lady and a child are stuck', fam: 'kamla', adds: ['Neighbour confirms'] },
+    { ch: 'Call note', text: 'Joseph family: on the roof, one small child, phone dying', fam: 'joseph', adds: ['Small child', 'Phone dying'] },
+    { ch: 'WhatsApp', text: 'Power cut in Sector 3 since 8 PM', fam: 'info' },
+    { ch: 'WhatsApp', text: 'Shaikh family gali 7, water up to the first step now', fam: 'shaikh', adds: ['Water still rising'] },
+    { ch: 'Post on X', text: 'Any boats near Shanti Nagar??', fam: 'noise' },
+    { ch: 'Forward', text: 'Army deployed at the dam, it really burst', fam: 'rumour' }
+  ];
+
+  var FAM = {
+    kamla: { id: 'P-0412', name: 'Kamla Devi household', place: 'Lane 4, Shanti Nagar', pr: 'P1', boat: true },
+    joseph: { id: 'P-0415', name: 'Joseph family, on a roof', place: 'Lane 9', pr: 'P1', boat: true },
+    shaikh: { id: 'P-0419', name: 'Shaikh family', place: 'Gali 7', pr: 'P2', boat: true },
+    camp: { id: 'S-0021', name: 'Camp 3 needs milk', place: 'Supplies van', pr: 'P2', boat: false },
+    check: { id: 'W-0033', name: 'Welfare check: Mohan', place: 'Sector 3', pr: 'P3', boat: false },
+    pinto: { id: 'P-0388', name: 'Pinto family', place: 'Lane 2', pr: 'SAFE', boat: false },
+    rumour: { id: 'V-0007', name: '“Dam has burst” claim', place: 'Being checked', pr: 'VERIFY', boat: false },
+    info: { id: 'A-0102', name: 'Road and power reports', place: 'Area memory', pr: 'INFO', boat: false },
+    noise: { id: 'Q-0300', name: 'General questions', place: 'Answered by Loop', pr: 'INFO', boat: false }
+  };
+
+  // Map positions in a 1000 x 300 view. Roads run at y = 70 and y = 165.
+  var LOC = {
+    pinto: [230, 112], kamla: [430, 212], shaikh: [650, 112], joseph: [860, 212],
+    camp: [880, 40], check: [430, 40], rumour: [960, 250], noise: [64, 150], info: [64, 150]
+  };
+  var LABEL = { pinto: 'Pinto, Lane 2', kamla: 'Kamla, Lane 4', shaikh: 'Shaikh, Gali 7', joseph: 'Joseph, Lane 9', camp: 'Camp 3', check: 'Mohan, Sector 3' };
+  var DOCK = [[66, 132], [66, 152], [66, 172]];
+
+  // Routes for round 1 run blindly into flooded Lane 6; round 2 already knows about it.
+  function route(fam, round) {
+    var low = function (x, y) { return [[120, 165], [x, 165], [x, y]]; };
+    var high = function (x, y) { return [[120, 70], [x, 70], [x, y]]; };
+    var r1 = {
+      pinto: low(230, 128), kamla: low(430, 196),
+      joseph: [[120, 165], [520, 165], 'BLOCK', [330, 165], [330, 70], [860, 70], [860, 196]],
+      shaikh: [[120, 165], [520, 165], 'BLOCK', [330, 165], [330, 70], [650, 70], [650, 96]],
+      camp: high(880, 54), check: high(430, 54), rumour: [[120, 70], [960, 70], [960, 236]],
+      noise: [[120, 165], [300, 165]], info: [[120, 165], [300, 165]]
+    };
+    var r2 = { joseph: high(860, 196), shaikh: high(650, 96), kamla: low(430, 196) };
+    return (round === 2 && r2[fam]) ? r2[fam] : r1[fam];
+  }
+
+  var timers = [];
+  var G = null;
+  var toastSeen = {};
+
+  function later(fn, ms) { var t = setTimeout(fn, ms); timers.push(t); return t; }
+  function every(fn, ms) { var t = setInterval(fn, ms); timers.push(t); return t; }
+  function clearAll() { timers.forEach(function (t) { clearTimeout(t); clearInterval(t); }); timers = []; }
+
+  function fmt(min) {
+    var m = Math.round(min);
+    var h = Math.floor(m / 60) % 24;
+    var mm = m % 60;
+    var h12 = h % 12 === 0 ? 12 : h % 12;
+    return h12 + ':' + (mm < 10 ? '0' : '') + mm + ' ' + (h >= 12 ? 'PM' : 'AM');
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
+  function svg(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function show(id) {
+    ['intro', 'game', 'res'].forEach(function (s) { $(s).classList.toggle('on', s === id); });
+    window.scrollTo(0, 0);
+  }
+
+  // Story intro
+  var BEATS = [
+    '9:30 PM. The river has burst its banks, and Ward 12 is flooding.',
+    'In Lane 4, Kamla, 68, is on the ground floor with her grandson. He has a fever. The water is at her knees.',
+    'She sends a voice note asking for help. So do hundreds of others, all at once.',
+    'Every message lands in one control room with three rescue boats. Tonight, you’re the duty officer.'
+  ];
+  function playStory() {
+    clearAll();
+    show('intro');
+    $('beats').style.display = '';
+    $('title-card').classList.remove('on');
+    var rise = document.querySelector('.flood-rise');
+    rise.style.animation = 'none'; void rise.getBoundingClientRect(); rise.style.animation = '';
+    var dots = $('beat-dots').children;
+    BEATS.forEach(function (b, i) {
+      later(function () {
+        $('beat-text').textContent = b;
+        for (var d = 0; d < dots.length; d++) dots[d].classList.toggle('on', d === i);
+      }, i * 3200);
+    });
+    later(endStory, BEATS.length * 3200);
+  }
+  function endStory() {
+    clearAll();
+    $('beats').style.display = 'none';
+    $('title-card').classList.add('on');
+    $('how1').focus();
+  }
+
+  // Modal helper
+  function modal(html, buttons) {
+    var s = $('sheet');
+    s.innerHTML = html;
+    var row = el('div', 'actions');
+    buttons.forEach(function (b) {
+      var btn = el('button', b.cls || 'cta', esc(b.label));
+      btn.type = 'button';
+      btn.addEventListener('click', function () { $('modal').classList.remove('on'); b.fn(); });
+      row.appendChild(btn);
+    });
+    s.appendChild(row);
+    $('modal').classList.add('on');
+    var first = row.querySelector('button');
+    if (first) first.focus();
+  }
+
+  function howTo(round, fn, resumeLabel) {
+    if (round === 1) {
+      modal('<div class="eyebrow">Round 1 of 2: the way it works today</div><h2 id="m-title">You read everything. You decide everything.</h2>' +
+        '<div class="goal"><b>Your goal:</b> get your 3 boats to the people who need rescuing most. Kamla is somewhere in the messages.</div>' +
+        '<ol class="steps"><li>Messages arrive in the list on the right (below the map on a phone), newest on top. A ripple on the map shows roughly where each one is from.</li>' +
+        '<li>Tap a message to read it, then press <b>Send a boat here</b>.</li>' +
+        '<li>Watch your boat sail across the map and see what it finds when it arrives.</li></ol>' +
+        '<div class="warn"><b>Careful:</b> some messages are repeats about the same family, some are rumours, and some are about people who are already safe. Just like a real flood night.</div>',
+        [{ label: resumeLabel || 'Start the night', fn: fn }]);
+    } else {
+      modal('<div class="eyebrow">Round 2 of 2: the same night, with Pukaar</div><h2 id="m-title">The agents read everything. You only approve.</h2>' +
+        '<div class="goal"><b>Your goal:</b> the same 3 boats, the same messages. This time six AI agents handle the paperwork for you.</div>' +
+        '<ol class="steps"><li>Each message gets a coloured label showing which agent handled it and what it did. A short note explains each agent the first time it acts.</li>' +
+        '<li>Urgent families become tickets, shown as pins on the map, ranked with reasons.</li>' +
+        '<li>When a boat is proposed, check the reasons and tap <b>Approve</b>. Nothing irreversible happens without you.</li></ol>',
+        [{ label: resumeLabel || 'Start the night', fn: fn }]);
+    }
+  }
+
+  var tipQueue = [];
+  var tipBusy = false;
+  function toast(key, title, text) {
+    if (toastSeen[key]) return;
+    toastSeen[key] = true;
+    tipQueue.push([title, text]);
+    if (!tipBusy) nextTip();
+  }
+  function nextTip() {
+    var box = $('explain');
+    if (!tipQueue.length) { tipBusy = false; return; }
+    tipBusy = true;
+    var t = tipQueue.shift();
+    box.hidden = false;
+    box.innerHTML = '<b>What just happened: ' + esc(t[0]) + '</b>' + esc(t[1]);
+    box.style.animation = 'none'; void box.offsetWidth; box.style.animation = '';
+    later(nextTip, 3200);
+  }
+  function resetTips() { tipQueue = []; tipBusy = false; $('explain').hidden = true; $('explain').innerHTML = ''; }
+
+  // Map drawing
+  var M = {};
+  function house(g, x, y, label, special) {
+    var h = svg('g', { transform: 'translate(' + x + ' ' + y + ') scale(1.35)' }, g);
+    svg('polygon', { points: '-20,-6 0,-20 20,-6', fill: 'var(--roof)' }, h);
+    svg('rect', { x: -17, y: -6, width: 34, height: 22, fill: 'var(--house)', stroke: 'rgba(0,0,0,0.15)' }, h);
+    svg('rect', { x: -11, y: -1, width: 9, height: 8, fill: special ? '#FFD27A' : '#BFD6D2' }, h);
+    svg('rect', { x: 4, y: 2, width: 7, height: 14, fill: 'var(--roof)' }, h);
+    return h;
+  }
+  function drawMap(round) {
+    var m = $('map');
+    m.innerHTML = '';
+    M = { boats: [], pins: {} };
+    svg('rect', { width: 1000, height: 300, fill: 'var(--land)' }, m);
+    var roads = svg('g', { stroke: 'var(--road)', 'stroke-width': 12, 'stroke-linecap': 'round' }, m);
+    [[100, 70, 990, 70], [100, 165, 990, 165], [120, 70, 120, 165], [330, 40, 330, 165], [540, 70, 540, 165], [750, 70, 750, 165], [430, 165, 430, 205], [650, 70, 650, 105], [860, 70, 860, 205], [960, 70, 960, 240], [880, 40, 880, 70], [430, 40, 430, 70], [230, 112, 230, 165]].forEach(function (r) {
+      svg('line', { x1: r[0], y1: r[1], x2: r[2], y2: r[3] }, roads);
+    });
+    var lbl = svg('g', { 'font-size': 15, fill: 'var(--muted)', 'font-family': 'Archivo, Arial, sans-serif' }, m);
+    svg('text', { x: 548, y: 125 }, lbl).textContent = 'Lane 6';
+    svg('text', { x: 760, y: 62 }, lbl).textContent = 'Station Road';
+    // river
+    M.water = svg('g', {}, m);
+    var wpath = 'M-60 0 Q -30 -8 0 0 T 60 0 T 120 0 T 180 0 T 240 0 T 300 0 T 360 0 T 420 0 T 480 0 T 540 0 T 600 0 T 660 0 T 720 0 T 780 0 T 840 0 T 900 0 T 960 0 T 1020 0 T 1080 0 V 200 H -60 Z';
+    M.waterInner = svg('g', { transform: 'translate(0 262)' }, M.water);
+    svg('path', { d: wpath, fill: 'var(--water)', opacity: 0.55, class: 'waterwave' }, M.waterInner);
+    svg('path', { d: wpath, fill: 'var(--water)', opacity: 0.35, transform: 'translate(0 8)', class: 'waterwave' }, M.waterInner);
+    // houses
+    var hs = svg('g', {}, m);
+    Object.keys(LABEL).forEach(function (k) { house(hs, LOC[k][0], LOC[k][1], LABEL[k], k === 'kamla'); });
+    // dam marker upstream
+    svg('rect', { x: 942, y: 244, width: 40, height: 10, fill: 'var(--muted)', opacity: 0.6 }, m);
+    var dl = svg('text', { x: 962, y: 278, 'font-size': 14, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-family': 'Archivo, Arial, sans-serif' }, m);
+    dl.textContent = 'Dam';
+    // control room
+    var cr = svg('g', {}, m);
+    svg('rect', { x: 10, y: 112, width: 92, height: 76, rx: 10, fill: 'var(--teal)' }, cr);
+    var ct = svg('text', { x: 56, y: 129, 'font-size': 13, fill: '#fff', 'text-anchor': 'middle', 'font-weight': 700, 'font-family': 'Archivo, Arial, sans-serif' }, cr);
+    ct.textContent = 'Control room';
+    // labels above water
+    var hl = svg('g', { 'font-size': 15.5, 'font-weight': 700, fill: 'var(--ink)', 'text-anchor': 'middle', 'font-family': 'Archivo, Arial, sans-serif' }, m);
+    Object.keys(LABEL).forEach(function (k) {
+      var t = svg('text', { x: LOC[k][0], y: LOC[k][1] + 38, 'paint-order': 'stroke', stroke: 'var(--land)', 'stroke-width': 3 }, hl);
+      t.textContent = LABEL[k];
+    });
+    M.fx = svg('g', {}, m);
+    M.pinLayer = svg('g', {}, m);
+    M.boatLayer = svg('g', {}, m);
+    M.bubbleLayer = svg('g', {}, m);
+    for (var i = 0; i < 3; i++) M.boats.push(boat(i));
+    if (round === 2) {
+      blockMark();
+      bubble(540, 140, 'Area memory: Lane 6 flooded', 'info', 4500);
+    }
+    $('legend').innerHTML = round === 1
+      ? '<span><i style="background:var(--gold)"></i>New message</span><span><i style="background:var(--teal)"></i>Your boats</span><span><i style="background:var(--water)"></i>Flood water, rising</span>'
+      : '<span><i style="background:var(--rasp)"></i>Urgent ticket</span><span><i style="background:var(--gold)"></i>Needs help soon</span><span><i style="background:var(--leaf)"></i>Safe</span><span><i style="background:var(--teal)"></i>Boats</span><span><i style="background:var(--water)"></i>Flood water</span>';
+  }
+  function boat(i) {
+    var g = svg('g', { transform: 'translate(' + DOCK[i][0] + ' ' + DOCK[i][1] + ')' }, M.boatLayer);
+    var inner = svg('g', { transform: 'scale(1.4)' }, g);
+    g = { el: g, inner: inner };
+    svg('path', { d: 'M-13 -2 L13 -2 L8 7 L-8 7 Z', fill: 'var(--card)', stroke: 'var(--teal)', 'stroke-width': 2 }, g.inner);
+    svg('rect', { x: -1, y: -15, width: 2, height: 13, fill: 'var(--teal)' }, g.inner);
+    svg('path', { d: 'M1 -14 L11 -5 L1 -5 Z', fill: 'var(--teal)' }, g.inner);
+    var t = svg('text', { x: 0, y: 5, 'font-size': 8, 'font-weight': 800, 'text-anchor': 'middle', fill: 'var(--teal)', 'font-family': 'Archivo, Arial, sans-serif' }, g.inner);
+    t.textContent = String(i + 1);
+    return { g: g, x: DOCK[i][0], y: DOCK[i][1], busy: false };
+  }
+  function blockMark() {
+    if (M.block) return;
+    M.block = svg('g', { transform: 'translate(540 165)' }, M.fx);
+    svg('circle', { r: 13, fill: 'var(--rasp)', opacity: 0.9 }, M.block);
+    svg('path', { d: 'M-6 -6 L6 6 M6 -6 L-6 6', stroke: '#fff', 'stroke-width': 3, 'stroke-linecap': 'round' }, M.block);
+  }
+  function ripple(fam, colour) {
+    var p = LOC[fam] || LOC.noise;
+    var c = svg('circle', { cx: p[0], cy: p[1] - 4, r: 16, fill: 'none', stroke: colour || 'var(--gold)', 'stroke-width': 3, class: 'ripple' }, M.fx);
+    later(function () { c.remove(); }, 1700);
+  }
+  function bubble(x, y, text, tone, ttl) {
+    var g = svg('g', {}, M.bubbleLayer);
+    var t = svg('text', { x: 0, y: 0, 'font-size': 16, 'font-weight': 700, fill: '#fff', 'font-family': 'Archivo, Arial, sans-serif' }, g);
+    t.textContent = text;
+    var w = t.getComputedTextLength ? t.getComputedTextLength() + 16 : text.length * 7;
+    var bx = Math.max(4, Math.min(1000 - w - 4, x - w / 2));
+    var by = Math.max(4, y - 40);
+    var colour = { good: 'var(--leaf)', bad: 'var(--rasp)', meh: 'var(--gold)', info: 'var(--plum)' }[tone] || 'var(--teal)';
+    var r = svg('rect', { x: bx, y: by, width: w, height: 27, rx: 7, fill: colour }, g);
+    g.insertBefore(r, t);
+    t.setAttribute('x', bx + 8);
+    t.setAttribute('y', by + 19);
+    if (ttl) later(function () { g.remove(); }, ttl);
+    return g;
+  }
+  function sail(b, pts, done) {
+    b.busy = true;
+    var path = [[b.x, b.y]].concat(pts);
+    var i = 1;
+    function step() {
+      if (i >= path.length) { done(); return; }
+      var target = path[i];
+      if (target === 'BLOCK') {
+        blockMark();
+        bubble(540, 150, 'Lane 6 is flooded, turning back', 'bad', 2600);
+        i++;
+        later(step, REDUCED ? 100 : 1300);
+        return;
+      }
+      var sx = b.x, sy = b.y;
+      var dist = Math.hypot(target[0] - sx, target[1] - sy);
+      var dur = REDUCED ? 1 : dist / 190 * 1000;
+      var t0 = performance.now();
+      function frame(now) {
+        if (!G || G.stopped) return;
+        var k = Math.min(1, (now - t0) / dur);
+        b.x = sx + (target[0] - sx) * k;
+        b.y = sy + (target[1] - sy) * k;
+        b.g.el.setAttribute('transform', 'translate(' + b.x + ' ' + b.y + ')');
+        if (k < 1) requestAnimationFrame(frame);
+        else { i++; step(); }
+      }
+      requestAnimationFrame(frame);
+    }
+    step();
+  }
+  function setWater(progress) {
+    // the flood creeps up from the river towards the low houses
+    var y = 262 - progress * 50;
+    M.waterInner.setAttribute('transform', 'translate(0 ' + y.toFixed(1) + ')');
+  }
+  function pin(fam, colour, label) {
+    var p = LOC[fam];
+    if (!p) return;
+    var g = M.pins[fam];
+    if (!g) {
+      g = svg('g', { transform: 'translate(' + p[0] + ' ' + (p[1] - 44) + ')' }, M.pinLayer);
+      svg('circle', { r: 19, fill: colour, opacity: 0.25, class: 'pinpulse' }, g);
+      svg('circle', { r: 13, fill: colour }, g);
+      var t = svg('text', { y: 5, 'font-size': 13, 'font-weight': 800, 'text-anchor': 'middle', fill: '#fff', 'font-family': 'Archivo, Arial, sans-serif' }, g);
+      M.pins[fam] = g;
+    }
+    var circles = g.querySelectorAll('circle');
+    circles[0].setAttribute('fill', colour);
+    circles[1].setAttribute('fill', colour);
+    g.querySelector('text').textContent = label;
+  }
+  function flyDot(fam) {
+    var p = LOC[fam];
+    var d = svg('circle', { cx: 60, cy: 150, r: 5, fill: 'var(--plum)' }, M.fx);
+    var t0 = performance.now();
+    function frame(now) {
+      var k = Math.min(1, (now - t0) / 700);
+      d.setAttribute('cx', 60 + (p[0] - 60) * k);
+      d.setAttribute('cy', 150 + (p[1] - 34 - 150) * k - Math.sin(k * Math.PI) * 50);
+      if (k < 1) requestAnimationFrame(frame); else d.remove();
+    }
+    if (REDUCED) d.remove(); else requestAnimationFrame(frame);
+  }
+
+  function msgCard(m, i, clock, clickable) {
+    var b = el(clickable ? 'button' : 'div', 'msg');
+    if (clickable) b.type = 'button';
+    b.dataset.i = i;
+    b.innerHTML = '<div class="meta"><b>' + esc(m.ch) + '</b><span>' + fmt(clock) + '</span></div>' +
+      '<div class="txt' + (m.dev ? ' dev' : '') + '">' + esc(m.text) + '</div>';
+    return b;
+  }
+
+  function hud(round) {
+    $('g-round').textContent = round === 1 ? 'Round 1 of 2: the way it works today' : 'Round 2 of 2: the same night, the same messages, the same three boats';
+    $('g-h').textContent = round === 1 ? 'You read. You decide. You dispatch.' : 'The agents do the paperwork. You send the boats.';
+    $('g-unread').hidden = round !== 1;
+    $('g-taps').hidden = round !== 2;
+    $('g-boats').textContent = '3';
+    $('g-clock').textContent = fmt(START);
+    $('p-title').firstChild.nodeValue = round === 1 ? 'Your boats ' : 'Your control room ';
+    $('p-sub').textContent = round === 1 ? 'Three boats for the whole ward' : 'Tickets ranked with reasons';
+    $('f-sub').textContent = round === 1 ? 'Newest on top. Tap one to read it.' : 'Watch what the agents do with each one';
+  }
+
+  // Round 1
+  function round1() {
+    clearAll();
+    $('toasts').innerHTML = '';
+    resetTips();
+    G = { round: 1, clock: START, idx: 0, sel: null, sent: {}, sentCount: 0, arrived: 0, wasted: 0, helped: 0, kamla: null, done: false, paused: true, elapsed: 0 };
+    hud(1);
+    show('game');
+    drawMap(1);
+    $('feed').innerHTML = '';
+    var p = $('panel');
+    p.innerHTML = '<div class="detail" id="detail"></div><div class="log" id="log" aria-live="polite"></div>';
+    renderDetail();
+    howTo(1, function () { G.paused = false; });
+    var last = performance.now();
+    var nextMsg = 600;
+    every(function () {
+      var now = performance.now();
+      var dt = now - last;
+      last = now;
+      if (G.paused || G.done) return;
+      G.elapsed += dt;
+      G.clock = START + G.elapsed / 1000 * SPEED;
+      $('g-clock').textContent = fmt(G.clock);
+      $('g-unread-n').textContent = Math.min(412, G.idx * 19 + Math.floor(G.elapsed / 400));
+      setWater(Math.min(1, G.elapsed / 50000));
+      if (G.elapsed >= nextMsg && G.idx < MSGS.length) {
+        nextMsg += 1700;
+        var i = G.idx++;
+        var m = MSGS[i];
+        var card = msgCard(m, i, G.clock, true);
+        card.addEventListener('click', function () { G.sel = i; markSel(); renderDetail(); });
+        $('feed').prepend(card);
+        ripple(m.fam === 'kamla' ? 'kamla' : m.fam);
+      }
+      if (G.elapsed > 58000) endRound1();
+    }, 100);
+  }
+  function markSel() {
+    Array.prototype.forEach.call($('feed').children, function (c) { c.classList.toggle('sel', Number(c.dataset.i) === G.sel); });
+  }
+  function freeBoats() { return M.boats.filter(function (b) { return !b.busy; }); }
+  function renderDetail() {
+    var d = $('detail');
+    if (!d) return;
+    if (G.sel === null) {
+      d.innerHTML = '<p class="hint">Tap a message in the list to read it here, then decide whether it needs one of your three boats.</p>';
+      return;
+    }
+    var m = MSGS[G.sel];
+    d.innerHTML = '<div class="small">' + esc(m.ch) + '</div><div class="txt' + (m.dev ? ' dev' : '') + '">' + esc(m.text) + '</div>' +
+      (m.en ? '<div class="small" style="margin:-4px 0 10px">Means: “' + esc(m.en) + '”</div>' : '');
+    var free = freeBoats().length;
+    var btn = el('button', 'send', free > 0 ? 'Send a boat here' : 'No boats left');
+    btn.type = 'button';
+    btn.disabled = free === 0 || G.done || G.paused;
+    btn.addEventListener('click', function () { dispatch(G.sel); });
+    d.appendChild(btn);
+  }
+  function dispatch(i) {
+    var m = MSGS[i];
+    var b = freeBoats()[0];
+    if (!b) return;
+    G.sentCount++;
+    $('g-boats').textContent = String(freeBoats().length - 1);
+    var card = $('feed').querySelector('[data-i="' + i + '"]');
+    if (card) card.classList.add('sent');
+    var dup = G.sent[m.fam] && FAM[m.fam].boat;
+    G.sent[m.fam] = true;
+    var clockAtSend = G.clock;
+    sail(b, route(m.fam, 1), function () {
+      G.arrived++;
+      var res;
+      var p = LOC[m.fam] || [300, 165];
+      if (dup) {
+        res = ['bad', 'Duplicate. Another boat was already going to this family; this message was about the same people.', 'Same family, again'];
+        G.wasted++;
+      } else if (m.fam === 'pinto') {
+        res = ['bad', 'Wasted trip. The Pinto family was rescued at 8:12 PM; people were still reposting old messages.', 'Already rescued at 8:12 PM'];
+        G.wasted++;
+      } else if (m.fam === 'rumour') {
+        res = ['bad', 'There was no dam burst. The river gauge never moved. The boat found nothing.', 'No dam burst here'];
+        G.wasted++;
+      } else if (m.fam === 'noise' || m.fam === 'info') {
+        res = ['bad', 'Nobody to rescue. That message was a question or a report, not a call for help.', 'Nobody needs rescue'];
+        G.wasted++;
+      } else if (m.fam === 'check') {
+        res = ['meh', 'Mohan was fine, just a dead phone battery. A boat spent an hour on a welfare check.', 'Mohan is fine'];
+        G.wasted++;
+      } else if (m.fam === 'camp') {
+        res = ['meh', 'Milk reached Camp 3, but a rescue boat was used for supplies while families waited.', 'Milk delivered'];
+      } else if (m.fam === 'kamla') {
+        G.kamla = clockAtSend + 40;
+        G.helped++;
+        res = ['good', 'You found Kamla. Her address was only “behind the Hanuman temple”, so the crew searched lane by lane and reached her at ' + fmt(G.kamla) + '.', 'Kamla found, after a search'];
+      } else {
+        G.helped++;
+        res = ['good', 'Good call. The boat reached the ' + FAM[m.fam].name + '.', 'Family rescued'];
+      }
+      bubble(p[0], p[1] - 14, res[2], res[0], 0);
+      $('log').prepend(el('div', res[0], esc(res[1])));
+      if (G.arrived === 3) later(endRound1, 1600);
+    });
+    renderDetail();
+  }
+  function endRound1() {
+    if (G.done) return;
+    G.done = true;
+    var waiting = G.kamla === null;
+    var R1 = { wasted: G.wasted, helped: G.helped, kamla: G.kamla, read: G.idx };
+    window.__r1 = R1;
+    var lines = '<div class="bad" style="background:var(--rasp-soft)">Boats wasted on repeats, rumours or people already safe: <b>' + R1.wasted + ' of 3</b></div>' +
+      '<div style="background:var(--leaf-soft)">Families you reached: <b>' + R1.helped + '</b></div>' +
+      '<div style="background:' + (waiting ? 'var(--rasp-soft)' : 'var(--gold-soft)') + '">' + (waiting ? 'Kamla is still waiting, with water at her knees and a feverish grandson. In her story, a boat finally reached her at 2:00 AM.' : 'Kamla was reached at <b>' + fmt(R1.kamla) + '</b>, after a long search for “behind the temple”.') + '</div>';
+    modal('<div class="eyebrow">Round 1 is over</div><h2 id="m-title">That’s what a real flood night feels like</h2><div class="stats">' + lines + '</div>' +
+      '<p>Now play the exact same night again. Same messages, same three boats, but this time Pukaar’s agents read everything first.</p>',
+      [{ label: 'Play round 2 with Pukaar', fn: round2 }]);
+  }
+
+  // Round 2
+  var RANK = { P1: 0, P2: 1, P3: 2, VERIFY: 3, SAFE: 4, INFO: 5 };
+  var TEAMS = ['Boat 1 (medic on board)', 'Boat 2', 'Boat 3'];
+  function round2() {
+    clearAll();
+    $('toasts').innerHTML = '';
+    toastSeen = {};
+    resetTips();
+    G = { round: 2, clock: START, idx: 0, taps: 0, tickets: {}, order: [], proposal: null, team: 0, saathiDone: false, kamlaArrived: false, kamlaSafe: null, arrived: 0, done: false, paused: true, elapsed: 0 };
+    hud(2);
+    show('game');
+    drawMap(2);
+    $('feed').innerHTML = '';
+    $('panel').innerHTML = '<div id="approve"><p class="hint">Waiting for the first call for help…</p></div><div id="saathi"></div><div class="board" id="board"></div>';
+    howTo(2, function () { G.paused = false; });
+    var last = performance.now();
+    var nextMsg = 600;
+    every(function () {
+      var now = performance.now();
+      var dt = now - last;
+      last = now;
+      if (G.paused || G.done) return;
+      G.elapsed += dt;
+      G.clock = START + G.elapsed / 1000 * SPEED;
+      $('g-clock').textContent = fmt(G.clock);
+      setWater(Math.min(1, G.elapsed / 50000));
+      if (G.elapsed >= nextMsg && G.idx < MSGS.length) {
+        nextMsg += 1150;
+        var i = G.idx++;
+        var card = msgCard(MSGS[i], i, G.clock, false);
+        $('feed').prepend(card);
+        ripple(MSGS[i].fam);
+        later(function () { process(i, card); }, 500);
+      }
+      checkKamla();
+      checkEnd2();
+    }, 100);
+  }
+  function process(i, card) {
+    var m = MSGS[i];
+    var f = FAM[m.fam];
+    var t = G.tickets[m.fam];
+    if (!t) { t = G.tickets[m.fam] = { fam: m.fam, count: 0, reasons: [], status: f.boat ? 'open' : 'info' }; G.order.push(m.fam); }
+    t.count++;
+    (m.adds || []).forEach(function (a) { if (t.reasons.indexOf(a) < 0) t.reasons.push(a); });
+    var chips = [];
+    if (m.dev || m.en) {
+      chips.push(['c-teal', 'Listen: understood ' + (m.ch.indexOf('Marathi') >= 0 ? 'Marathi' : m.dev ? 'Hindi' : 'Hinglish')]);
+      toast('listen', 'Listen agent', 'It understands voice notes and messages in Hindi, Marathi, Hinglish or English, and pulls out who needs help, where, and how urgently.');
+    }
+    if (f.boat) {
+      if (t.count > 1) {
+        chips.push(['c-plum', 'Triage: merged into ' + f.id + ' (' + t.count + ' reports)']);
+        flyDot(m.fam);
+        toast('merge', 'Triage agent: merging', 'This message is about a family that already has a ticket, so it was merged in. One family, one ticket, however many people report it.');
+      } else {
+        chips.push(['c-rasp', 'Triage: new ' + (f.pr === 'P1' ? 'urgent' : 'priority') + ' ticket ' + f.id]);
+        toast('new', 'Triage agent: new ticket', 'A real call for help becomes a ticket, ranked with reasons. Urgent ones go to the top and show as red pins on the map.');
+      }
+      pin(m.fam, f.pr === 'P1' ? 'var(--rasp)' : 'var(--gold)', t.count > 1 ? '×' + t.count : '!');
+    } else if (m.fam === 'pinto') {
+      chips.push(['c-leaf', 'Loop: replied “rescued at 8:12 PM, safe at Camp 3”']);
+      pin('pinto', 'var(--leaf)', '✓');
+      toast('loop', 'Loop agent', 'The Pinto family was already rescued. Loop tells everyone still reposting about them, so no boat is wasted.');
+    } else if (m.fam === 'rumour') {
+      chips.push(['c-grey', 'Triage: sent to be checked; the river gauge disagrees']);
+      toast('verify', 'Triage agent: checking claims', 'The “dam burst” forward contradicts the river sensors, so it goes to a verify lane instead of triggering a panic.');
+    } else if (m.fam === 'info') {
+      chips.push(['c-teal', 'Watch: saved to area memory; routes avoid it']);
+      toast('watch', 'Watch agent', 'Road and power reports are remembered, so every boat route avoids danger automatically.');
+    } else if (m.fam === 'noise') {
+      chips.push(['c-leaf', 'Loop: answered with the ward bulletin']);
+    } else if (m.fam === 'camp') {
+      chips.push(['c-gold', 'Dispatch: supplies van queued, no boat used']);
+      toast('dispatch-supply', 'Dispatch agent', 'Supplies go by van, not by rescue boat. Boats stay free for people.');
+    } else if (m.fam === 'check') {
+      chips.push(['c-teal', 'Dispatch: volunteer callback queued']);
+    }
+    var row = el('div', 'chips');
+    chips.forEach(function (c) { row.appendChild(el('span', 'chip ' + c[0], esc(c[1]))); });
+    card.appendChild(row);
+    renderBoard();
+    nextProposal();
+  }
+  function renderBoard() {
+    var b = $('board');
+    if (!b) return;
+    b.innerHTML = '';
+    G.order.slice().sort(function (a, c) { return RANK[FAM[a].pr] - RANK[FAM[c].pr]; }).forEach(function (k) {
+      var f = FAM[k];
+      var t = G.tickets[k];
+      var badge = { P1: 'b-p1', P2: 'b-p2', P3: 'b-p3', VERIFY: 'b-v', SAFE: 'b-ok', INFO: 'b-i' }[f.pr];
+      var label = { P1: 'Urgent', P2: 'Soon', P3: 'Check', VERIFY: 'Verify', SAFE: 'Safe', INFO: 'Info' }[f.pr];
+      var st = '';
+      if (t.status === 'open') st = '<span class="st" style="color:var(--rasp)">Needs a boat</span>';
+      if (t.status === 'assigned') st = '<span class="st" style="color:var(--gold)">' + esc(t.team.split(' (')[0]) + ' on the way</span>';
+      if (t.status === 'safe' || f.pr === 'SAFE') st = '<span class="st" style="color:var(--leaf)">Safe</span>';
+      var reasons = t.reasons.length ? '<div class="chips">' + t.reasons.map(function (r) { return '<span class="chip c-rasp">' + esc(r) + '</span>'; }).join('') + '</div>' : '';
+      b.appendChild(el('div', 'tk', '<span class="badge ' + badge + '">' + label + '</span><div><b>' + esc(f.name) + '</b>' + esc(f.place) + ', ' + t.count + ' report' + (t.count > 1 ? 's' : '') + reasons + '</div>' + st));
+    });
+  }
+  function nextProposal() {
+    if (G.proposal) return;
+    var open = G.order.filter(function (k) { return G.tickets[k].status === 'open'; }).sort(function (a, c) { return RANK[FAM[a].pr] - RANK[FAM[c].pr]; });
+    var box = $('approve');
+    if (!open.length) {
+      box.innerHTML = G.team >= 3 ? '<p class="hint">All three boats are working. Nothing is waiting for you.</p>' : '<p class="hint">Nothing needs you right now. The agents are handling everything else.</p>';
+      return;
+    }
+    var k = open[0];
+    var f = FAM[k];
+    var t = G.tickets[k];
+    var team = TEAMS[G.team];
+    G.proposal = k;
+    box.innerHTML = '';
+    var card = el('div', 'approve');
+    card.innerHTML = '<div class="lbl">Dispatch agent proposes. Waiting for your approval</div><h4>Send ' + esc(team) + ' to the ' + esc(f.name) + '?</h4>' +
+      '<div class="chips">' + t.reasons.map(function (r) { return '<span class="chip c-rasp">' + esc(r) + '</span>'; }).join('') + '</div>' +
+      '<div class="why">Why: ' + (f.pr === 'P1' ? 'most urgent ticket right now. ' : 'next most urgent. ') + (k === 'kamla' ? 'This boat has a medic for the child. ' : '') +
+      'The route avoids flooded Lane 6. ' + (t.count > 1 ? t.count + ' reports merged into this one ticket.' : 'Later reports about them will merge in.') + '</div>';
+    var ok = el('button', 'ok pulse', 'Approve');
+    ok.type = 'button';
+    ok.addEventListener('click', function () { approve(k, team); });
+    card.appendChild(ok);
+    box.appendChild(card);
+    toast('approve', 'Your turn: the human gate', 'Agents never send a boat on their own. Check the reasons and tap Approve.');
+  }
+  function approve(k, team) {
+    var t = G.tickets[k];
+    if (t.status !== 'open') return;
+    t.status = 'assigned';
+    t.team = team;
+    t.approvedAt = G.clock;
+    var b = M.boats[G.team];
+    G.team++;
+    G.taps++;
+    $('g-taps-n').textContent = G.taps;
+    $('g-boats').textContent = String(3 - G.team);
+    G.proposal = null;
+    renderBoard();
+    sail(b, route(k, 2), function () {
+      G.arrived++;
+      var p = LOC[k];
+      if (k === 'kamla') {
+        G.kamlaArrived = true;
+        bubble(p[0], p[1] - 40, 'Boat 1 has arrived', 'good', 2500);
+      } else {
+        t.status = 'safe';
+        pin(k, 'var(--leaf)', '✓');
+        bubble(p[0], p[1] - 40, 'Family rescued', 'good', 0);
+        renderBoard();
+      }
+    });
+    if (k === 'kamla') later(runSaathi, 1200);
+    nextProposal();
+  }
+  function runSaathi() {
+    var s = el('div', 'saathi', '<div class="lbl">Saathi, in Kamla’s chat while she waits</div>');
+    $('saathi').appendChild(s);
+    toast('saathi', 'Saathi, the safety companion', 'While Kamla waits for the boat, Saathi answers “what do I do now?” in her language, using only approved safety playbooks.');
+    var steps = [
+      ['bub out dev', 'गैस की बदबू आ रही है, पानी भी घुस गया है', 'There’s a smell of gas, and water has come inside'],
+      ['bub in dev', 'किसी भी बिजली के स्विच को न छुएँ, आग न जलाएँ। सिलेंडर का रेगुलेटर बंद करें, खिड़कियाँ खोलें और बाहर ऊँची जगह पर जाएँ। बाहर से 1906 पर कॉल करें।', 'Don’t touch switches or light a flame. Close the cylinder, open the windows, go outside to higher ground, and call 1906 (LPG emergency) from there.'],
+      ['sys', 'Gas risk added to ticket P-0412. Boat 1 crew told.'],
+      ['bub out dev', 'हम बाहर आ गए हैं', 'We’re outside now'],
+      ['bub in dev', 'बहुत अच्छा। वहीं रुकें, बोट 1 पहुँच रही है।', 'Well done. Stay there, Boat 1 is arriving.']
+    ];
+    steps.forEach(function (st, n) {
+      later(function () {
+        var b = el('div', st[0], esc(st[1]) + (st[2] ? '<div class="small" style="margin-top:3px;font-family:Archivo,Arial,sans-serif">' + esc(st[2]) + '</div>' : ''));
+        s.appendChild(b);
+        if (n === steps.length - 1) G.saathiDone = true;
+      }, 1100 * (n + 1));
+    });
+  }
+  function checkKamla() {
+    var t = G.tickets.kamla;
+    if (!t || t.status !== 'assigned' || !G.kamlaArrived || !G.saathiDone || G.kamlaSafe) return;
+    t.status = 'safe';
+    G.kamlaSafe = Math.max(G.clock, t.approvedAt + 22);
+    pin('kamla', 'var(--leaf)', '✓');
+    var p = LOC.kamla;
+    bubble(p[0], p[1] - 40, 'Kamla and her grandson are safe', 'good', 0);
+    renderBoard();
+    var s = $('saathi').querySelector('.saathi');
+    if (s) s.appendChild(el('div', 'sys', 'Volunteer OTP confirmed. Kamla is safe at ' + fmt(G.kamlaSafe) + '. Ticket P-0412 closed.'));
+  }
+  function checkEnd2() {
+    if (G.done) return;
+    if (G.idx >= MSGS.length && G.kamlaSafe !== null && G.team >= 3 && G.arrived >= 3) {
+      G.done = true;
+      later(function () {
+        modal('<div class="eyebrow">Round 2 is over</div><h2 id="m-title">Same night. Three taps. Nobody wasted.</h2>' +
+          '<p>Every boat went to a family that needed it, the most urgent first, and Kamla was kept safe while she waited.</p>',
+          [{ label: 'See how the two nights compare', fn: results }]);
+      }, 1500);
+    }
+  }
+
+  function countUp(elm, to, ms) {
+    if (REDUCED) { elm.textContent = to; return; }
+    var t0 = performance.now();
+    function f(now) {
+      var k = Math.min(1, (now - t0) / ms);
+      elm.textContent = Math.round(to * k);
+      if (k < 1) requestAnimationFrame(f);
+    }
+    requestAnimationFrame(f);
+  }
+  function results() {
+    clearAll();
+    $('toasts').innerHTML = '';
+    var R1 = window.__r1 || { wasted: 0, helped: 0, kamla: null, read: 0 };
+    var rows = function (list) { return list.map(function (r) { return '<div class="row"><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>'; }).join(''); };
+    $('res-1').innerHTML = '<div class="big"><div><b data-n="' + R1.wasted + '">0</b><span>boats wasted</span></div><div><b data-n="' + R1.helped + '">0</b><span>families reached</span></div></div>' +
+      rows([['Kamla', R1.kamla ? 'Reached at ' + fmt(R1.kamla) + ', after a search' : 'Still waiting (2:00 AM in her story)'], ['What it took', 'Reading ' + R1.read + ' messages, with 400+ unread']]);
+    $('res-2').innerHTML = '<div class="big"><div><b data-n="0">0</b><span>boats wasted</span></div><div><b data-n="3">0</b><span>families reached</span></div></div>' +
+      rows([['Kamla', 'Safe at ' + fmt(G.kamlaSafe) + ', guided by Saathi'], ['What it took', G.taps + ' taps on Approve']]);
+    show('res');
+    document.querySelectorAll('#res [data-n]').forEach(function (b) { countUp(b, Number(b.dataset.n), 900); });
+  }
+
+  $('skip').addEventListener('click', endStory);
+  $('replay').addEventListener('click', playStory);
+  $('how1').addEventListener('click', round1);
+  $('again').addEventListener('click', round1);
+  $('story').addEventListener('click', playStory);
+  $('g-help').addEventListener('click', function () {
+    if (!G) return;
+    var was = G.paused;
+    G.paused = true;
+    howTo(G.round, function () { G.paused = was; }, 'Back to the game');
+  });
+
+  playStory();
+})();
+</script>
+</body>
+</html>
